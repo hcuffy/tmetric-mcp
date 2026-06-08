@@ -31,11 +31,11 @@ export function registerUserTools(server: McpServer): void {
         'Use as an alternative to listing members (GET /members is unconfirmed).',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTeam[]>(
                 'GET',
-                `/accounts/${aid}/teams/managed`
+                `/accounts/${accountId}/teams/managed`
             );
 
             return result(data);

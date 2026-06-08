@@ -14,11 +14,11 @@ export function registerTaskTools(server: McpServer): void {
             description: 'List all tasks in the account workspace.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTask[]>(
                 'GET',
-                `/accounts/${aid}/tasks`
+                `/accounts/${accountId}/tasks`
             );
 
             return result(data);
@@ -32,11 +32,11 @@ export function registerTaskTools(server: McpServer): void {
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID'),
                 taskId:    z.number().int().describe('Task ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId, taskId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, taskId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTask>(
                 'GET',
-                `/accounts/${aid}/tasks/${taskId}`
+                `/accounts/${accountId}/tasks/${taskId}`
             );
 
             return result(data);
@@ -52,8 +52,8 @@ export function registerTaskTools(server: McpServer): void {
                 projectId:   z.number().int().optional().describe('Project ID to associate the task with'),
                 description: z.string().optional().describe('Task description') },
             annotations: { idempotentHint: false } },
-        async({ accountId, name, projectId, description }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, name, projectId, description }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const body: Record<string, unknown> = { name };
             if (projectId !== undefined) {
                 body.projectId = projectId;
@@ -63,7 +63,7 @@ export function registerTaskTools(server: McpServer): void {
             }
             const data = await tmetricRequest<TMetricTask>(
                 'POST',
-                `/accounts/${aid}/tasks`,
+                `/accounts/${accountId}/tasks`,
                 body
             );
 
@@ -85,9 +85,9 @@ export function registerTaskTools(server: McpServer): void {
             },
             annotations: { idempotentHint: false } },
         async({
-            accountId, taskId, name, projectId, description, isCompleted
+            accountId: explicitAccountId, taskId, name, projectId, description, isCompleted
         }) => {
-            const aid = await resolveAccountId(accountId);
+            const accountId = await resolveAccountId(explicitAccountId);
             const body: Record<string, unknown> = { name };
             if (projectId !== undefined) {
                 body.projectId = projectId;
@@ -100,7 +100,7 @@ export function registerTaskTools(server: McpServer): void {
             }
             const data = await tmetricRequest<TMetricTask>(
                 'PUT',
-                `/accounts/${aid}/tasks/${taskId}`,
+                `/accounts/${accountId}/tasks/${taskId}`,
                 body
             );
 
@@ -122,9 +122,9 @@ export function registerTaskTools(server: McpServer): void {
             },
             annotations: { idempotentHint: false } },
         async({
-            accountId, taskId, name, projectId, description, isCompleted
+            accountId: explicitAccountId, taskId, name, projectId, description, isCompleted
         }) => {
-            const aid = await resolveAccountId(accountId);
+            const accountId = await resolveAccountId(explicitAccountId);
             const body: Record<string, unknown> = {};
             if (name !== undefined) {
                 body.name = name;
@@ -140,7 +140,7 @@ export function registerTaskTools(server: McpServer): void {
             }
             const data = await tmetricRequest<TMetricTask>(
                 'PATCH',
-                `/accounts/${aid}/tasks/${taskId}`,
+                `/accounts/${accountId}/tasks/${taskId}`,
                 body
             );
 
@@ -155,9 +155,9 @@ export function registerTaskTools(server: McpServer): void {
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID'),
                 taskId:    z.number().int().describe('Task ID to delete') },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({ accountId, taskId }) => {
-            const aid = await resolveAccountId(accountId);
-            await tmetricRequest<void>('DELETE', `/accounts/${aid}/tasks/${taskId}`);
+        async({ accountId: explicitAccountId, taskId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
+            await tmetricRequest<void>('DELETE', `/accounts/${accountId}/tasks/${taskId}`);
 
             return result({ success: true, taskId });
         }

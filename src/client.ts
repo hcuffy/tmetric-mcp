@@ -1,14 +1,14 @@
 const BASE_URL = 'https://app.tmetric.com/api/v3';
 
 function requireToken(): string {
-    const t = process.env.TMETRIC_API_TOKEN;
-    if (!t) {
+    const token = process.env.TMETRIC_API_TOKEN;
+    if (!token) {
         throw new Error(
             'TMETRIC_API_TOKEN is not set. Add it to your environment or MCP server env block.'
         );
     }
 
-    return t;
+    return token;
 }
 
 export async function tmetricRequest<T>(
@@ -16,25 +16,25 @@ export async function tmetricRequest<T>(
     path: string,
     body?: unknown
 ): Promise<T> {
-    const res = await fetch(`${BASE_URL}${path}`, { method,
+    const response = await fetch(`${BASE_URL}${path}`, { method,
         headers: { Authorization:  `Bearer ${requireToken()}`,
             'Content-Type': 'application/json' },
         body: body !== undefined ? JSON.stringify(body) : undefined });
 
-    if (!res.ok) {
-        const text = await res.text().catch(() => '');
+    if (!response.ok) {
+        const text = await response.text().catch(() => '');
         throw new Error(
-            `TMetric ${method} ${path} → ${res.status} ${res.statusText}. ` +
+            `TMetric ${method} ${path} → ${response.status} ${response.statusText}. ` +
         `Body: ${text || '(empty)'}. ` +
         'Check: token validity, accountId correctness, and date formats (YYYY-MM-DD / YYYY-MM-DDTHH:mm:ss).'
         );
     }
 
-    if (res.status === 204) {
+    if (response.status === 204) {
         return undefined as T;
     }
 
-    return (await res.json()) as T;
+    return (await response.json()) as T;
 }
 
 let cachedAccountId: number | undefined;
@@ -72,7 +72,7 @@ export async function resolveAccountId(explicit?: number): Promise<number> {
 
     if (user.accounts && user.accounts.length > 1) {
         const list = user.accounts
-            .map(a => `${a.id} (${a.name})`)
+            .map(account => `${account.id} (${account.name})`)
             .join(', ');
         throw new Error(
             `Multiple TMetric accounts found: ${list}. ` +

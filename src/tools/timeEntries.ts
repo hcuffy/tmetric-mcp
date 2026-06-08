@@ -32,8 +32,8 @@ export function registerTimeEntryTools(server: McpServer): void {
                 startDate: z.string().optional().describe('Start date YYYY-MM-DD (inclusive)'),
                 endDate:   z.string().optional().describe('End date YYYY-MM-DD (inclusive)') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId, userId, startDate, endDate }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, userId, startDate, endDate }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const params = new URLSearchParams();
             if (userId !== undefined) {
                 params.set('userId', String(userId));
@@ -44,10 +44,10 @@ export function registerTimeEntryTools(server: McpServer): void {
             if (endDate) {
                 params.set('endDate', endDate);
             }
-            const qs = params.toString() ? `?${params}` : '';
+            const queryString = params.toString() ? `?${params}` : '';
             const data = await tmetricRequest<TMetricTimeEntry[]>(
                 'GET',
-                `/accounts/${aid}/timeentries${qs}`
+                `/accounts/${accountId}/timeentries${queryString}`
             );
 
             return result(data);
@@ -65,16 +65,16 @@ export function registerTimeEntryTools(server: McpServer): void {
                 userId:    z.number().int().optional().describe('User ID (0 = current user)'),
                 entry:     TimeEntryBodySchema.describe('Time entry data') },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({ accountId, userId, entry }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, userId, entry }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const params = new URLSearchParams();
             if (userId !== undefined) {
                 params.set('userId', String(userId));
             }
-            const qs = params.toString() ? `?${params}` : '';
+            const queryString = params.toString() ? `?${params}` : '';
             const data = await tmetricRequest<TMetricTimeEntry>(
                 'POST',
-                `/accounts/${aid}/timeentries${qs}`,
+                `/accounts/${accountId}/timeentries${queryString}`,
                 entry
             );
 
@@ -91,11 +91,11 @@ export function registerTimeEntryTools(server: McpServer): void {
                 timeEntryId: z.number().int().describe('ID of the time entry to update'),
                 entry:       TimeEntryBodySchema.describe('Updated time entry data') },
             annotations: { idempotentHint: false } },
-        async({ accountId, timeEntryId, entry }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, timeEntryId, entry }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTimeEntry>(
                 'PUT',
-                `/accounts/${aid}/timeentries/${timeEntryId}`,
+                `/accounts/${accountId}/timeentries/${timeEntryId}`,
                 entry
             );
 
@@ -110,11 +110,11 @@ export function registerTimeEntryTools(server: McpServer): void {
             inputSchema: { accountId:   z.number().int().optional().describe('TMetric account ID'),
                 timeEntryId: z.number().int().describe('ID of the time entry to delete') },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({ accountId, timeEntryId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, timeEntryId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             await tmetricRequest<void>(
                 'DELETE',
-                `/accounts/${aid}/timeentries/${timeEntryId}`
+                `/accounts/${accountId}/timeentries/${timeEntryId}`
             );
 
             return result({ success: true, timeEntryId });
@@ -128,11 +128,11 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Get the most recent time entry. An entry with endTime=null is the currently running timer.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTimeEntry>(
                 'GET',
-                `/accounts/${aid}/timeentries/latest`
+                `/accounts/${accountId}/timeentries/latest`
             );
 
             return result(data);
@@ -145,11 +145,11 @@ export function registerTimeEntryTools(server: McpServer): void {
             description: 'Get a list of recent time entries.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<TMetricTimeEntry[]>(
                 'GET',
-                `/accounts/${aid}/timeentries/recent`
+                `/accounts/${accountId}/timeentries/recent`
             );
 
             return result(data);
@@ -164,11 +164,11 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Use this to discover project IDs when creating time entries.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<unknown[]>(
                 'GET',
-                `/accounts/${aid}/timeentries/projects`
+                `/accounts/${accountId}/timeentries/projects`
             );
 
             return result(data);
@@ -181,11 +181,11 @@ export function registerTimeEntryTools(server: McpServer): void {
             description: 'Get all tags available for time entries in this account.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const data = await tmetricRequest<unknown[]>(
                 'GET',
-                `/accounts/${aid}/timeentries/tags`
+                `/accounts/${accountId}/timeentries/tags`
             );
 
             return result(data);
@@ -204,12 +204,12 @@ export function registerTimeEntryTools(server: McpServer): void {
                     .optional()
                     .describe('End time of break YYYY-MM-DDTHH:mm:ss, or null to stop timer') },
             annotations: { idempotentHint: false } },
-        async({ accountId, endTime }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, endTime }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const body = endTime !== undefined ? { endTime } : undefined;
             const data = await tmetricRequest<unknown>(
                 'POST',
-                `/accounts/${aid}/timeentries/break`,
+                `/accounts/${accountId}/timeentries/break`,
                 body
             );
 
@@ -225,11 +225,11 @@ export function registerTimeEntryTools(server: McpServer): void {
         'if its endTime is null, the timer is running. Returns null if no timer is active.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const entry = await tmetricRequest<TMetricTimeEntry | null>(
                 'GET',
-                `/accounts/${aid}/timeentries/latest`
+                `/accounts/${accountId}/timeentries/latest`
             );
             if (!entry || entry.endTime !== null) {
                 return result({ running: false, timer: null });
@@ -264,9 +264,9 @@ export function registerTimeEntryTools(server: McpServer): void {
             },
             annotations: { destructiveHint: true, idempotentHint: false } },
         async({
-            accountId, projectId, taskId, note, tags, isBillable, startTime
+            accountId: explicitAccountId, projectId, taskId, note, tags, isBillable, startTime
         }) => {
-            const aid = await resolveAccountId(accountId);
+            const accountId = await resolveAccountId(explicitAccountId);
             const body: Record<string, unknown> = { startTime: startTime ?? null,
                 endTime:   null };
             if (projectId !== undefined) {
@@ -286,7 +286,7 @@ export function registerTimeEntryTools(server: McpServer): void {
             }
             const data = await tmetricRequest<TMetricTimeEntry>(
                 'POST',
-                `/accounts/${aid}/timeentries`,
+                `/accounts/${accountId}/timeentries`,
                 body
             );
 
@@ -315,14 +315,14 @@ export function registerTimeEntryTools(server: McpServer): void {
                         'Stop time YYYY-MM-DDTHH:mm:ss. Defaults to current time if omitted.'
                     ) },
             annotations: { idempotentHint: false } },
-        async({ accountId, timeEntryId, endTime }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, timeEntryId, endTime }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             let entryId = timeEntryId;
 
             if (entryId === undefined) {
                 const latest = await tmetricRequest<TMetricTimeEntry | null>(
                     'GET',
-                    `/accounts/${aid}/timeentries/latest`
+                    `/accounts/${accountId}/timeentries/latest`
                 );
                 if (!latest || latest.endTime !== null) {
                     return result({ success: false, message: 'No running timer found.' });
@@ -335,7 +335,7 @@ export function registerTimeEntryTools(server: McpServer): void {
 
             const data = await tmetricRequest<TMetricTimeEntry>(
                 'PUT',
-                `/accounts/${aid}/timeentries/${entryId}`,
+                `/accounts/${accountId}/timeentries/${entryId}`,
                 { endTime: stopTime }
             );
 

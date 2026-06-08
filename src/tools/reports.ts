@@ -16,8 +16,8 @@ function appendArrayParam(
     if (!values || values.length === 0) {
         return;
     }
-    for (const v of values) {
-        params.append(key, String(v));
+    for (const value of values) {
+        params.append(key, String(value));
     }
 }
 
@@ -63,9 +63,9 @@ export function registerReportTools(server: McpServer): void {
             },
             annotations: { readOnlyHint: true, idempotentHint: true } },
         async({
-            accountId, userId, teamId, clientId, projectId, includeDone, startDate, endDate
+            accountId: explicitAccountId, userId, teamId, clientId, projectId, includeDone, startDate, endDate
         }) => {
-            const aid = await resolveAccountId(accountId);
+            const accountId = await resolveAccountId(explicitAccountId);
             const params = new URLSearchParams();
             appendArrayParam(params, 'userId', userId);
             appendArrayParam(params, 'teamId', teamId);
@@ -80,10 +80,10 @@ export function registerReportTools(server: McpServer): void {
             if (endDate) {
                 params.set('endDate', endDate);
             }
-            const qs = params.toString() ? `?${params}` : '';
+            const queryString = params.toString() ? `?${params}` : '';
             const data = await tmetricRequest<TMetricProjectsReport[]>(
                 'GET',
-                `/accounts/${aid}/reports/projects${qs}`
+                `/accounts/${accountId}/reports/projects${queryString}`
             );
 
             return result(data);
@@ -107,8 +107,8 @@ export function registerReportTools(server: McpServer): void {
                     .optional()
                     .describe('End date YYYY-MM-DD (inclusive)') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId, startDate, endDate }) => {
-            const aid = await resolveAccountId(accountId);
+        async({ accountId: explicitAccountId, startDate, endDate }) => {
+            const accountId = await resolveAccountId(explicitAccountId);
             const params = new URLSearchParams();
             if (startDate) {
                 params.set('startDate', startDate);
@@ -116,10 +116,10 @@ export function registerReportTools(server: McpServer): void {
             if (endDate) {
                 params.set('endDate', endDate);
             }
-            const qs = params.toString() ? `?${params}` : '';
+            const queryString = params.toString() ? `?${params}` : '';
             const data = await tmetricRequest<TMetricProfitabilityReport>(
                 'GET',
-                `/accounts/${aid}/reports/profitability${qs}`
+                `/accounts/${accountId}/reports/profitability${queryString}`
             );
 
             return result(data);

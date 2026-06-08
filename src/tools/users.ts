@@ -28,7 +28,7 @@ export function registerUserTools(server: McpServer): void {
         { title: 'List Managed Teams',
             description:
         'List teams managed by the current user in the given account. ' +
-        'Use as an alternative to listing members (GET /members is unconfirmed).',
+        'Use to list teams managed by the current user (members list is not available via GET).',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
         async({ accountId: explicitAccountId }) => {

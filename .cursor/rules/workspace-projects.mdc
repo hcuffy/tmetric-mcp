@@ -1,0 +1,26 @@
+---
+description: Multi-root workspace layout and where `data-cy-id` selectors actually originate (cypress-fleetster vs platform vs rf-elements).
+alwaysApply: true
+---
+
+# Workspace structure
+
+This Cursor workspace is multi-root.
+
+- **cypress-fleetster** (root `.`) – Cypress E2E test repo; tests reference `data-cy-id` via `getByCyId()`. Only submodule: `fleetster_modules/f-mongoose-schemas`.
+
+- **platform** (root `../platform`, folder name "platform" in workspace) – RF Platform / react-fleetster-web app; this is where most `data-cy-id` attributes are declared. Cypress selectors doc: `platform/.github/cypress_selectors.md`.
+
+## Where `data-cy-id` values actually come from
+
+1. **App components** in `platform/src/**` — pages and feature components declare explicit `data-cy-id` props.
+2. **`rf-elements` submodule** (`platform/fleetster_modules/rf-elements`, repo `../elements`) — shared UI library. Several components **auto-generate suffixed `data-cy-id`s** from the base id you pass in; the suffix logic lives here, not in the app. Known wrappers:
+   - `RFSelect` → `-select` and `-select-button`
+   - `RFSelectLazy` → `-select-lazy`
+   - `RFAddButton` → `-add-button`
+   - `RFAnalyticsCard` → `-value`
+   - `RFUploadDocument` → `-image-upload`
+   - `ImageMask` → `-image-dropzone-input`
+   - `RFCheckbox`, `RFConfirm` — also wire `data-cy-id` through.
+
+   When a selector in a spec looks "wrong" or a base id doesn't resolve, check `platform/fleetster_modules/rf-elements/src/elements/**` for the component and its suffix rules before changing the test.

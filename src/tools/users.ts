@@ -1,0 +1,46 @@
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
+import { tmetricRequest, resolveAccountId } from '../client.js';
+import type { TMetricUser, TMetricTeam } from '../types.js';
+
+function result(data: unknown) {
+    return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] };
+}
+
+export function registerUserTools(server: McpServer): void {
+    // GET current user — confirmed ✅
+    server.registerTool(
+        'tmetric_get_current_user',
+        { title: 'Get Current User',
+            description:
+        'Get the authenticated user\'s profile, including account memberships and activeAccountId. ' +
+        'Use this to discover your accountId.',
+            inputSchema: {},
+            annotations: { readOnlyHint: true, idempotentHint: true } },
+        async() => {
+            const data = await tmetricRequest<TMetricUser>('GET', '/user');
+
+            return result(data);
+        }
+    );
+
+    // GET managed teams — confirmed fallback for unconfirmed GET /members ✅
+    server.registerTool(
+        'tmetric_list_managed_teams',
+        { title: 'List Managed Teams',
+            description:
+        'List teams managed by the current user in the given account. ' +
+        'Use as an alternative to listing members (GET /members is unconfirmed).',
+            inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
+            annotations: { readOnlyHint: true, idempotentHint: true } },
+        async({ accountId }) => {
+            const aid = await resolveAccountId(accountId);
+            const data = await tmetricRequest<TMetricTeam[]>(
+                'GET',
+                `/accounts/${aid}/teams/managed`
+            );
+
+            return result(data);
+        }
+    );
+}

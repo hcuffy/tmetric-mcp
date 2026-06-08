@@ -22,7 +22,6 @@ function result(data: unknown) {
 }
 
 export function registerTimeEntryTools(server: McpServer): void {
-    // GET time entries for a date range
     server.registerTool(
         'tmetric_get_time_entries',
         { title: 'Get Time Entries',
@@ -55,7 +54,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // POST create time entry
     server.registerTool(
         'tmetric_create_time_entry',
         { title: 'Create Time Entry',
@@ -84,7 +82,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // PUT update time entry
     server.registerTool(
         'tmetric_update_time_entry',
         { title: 'Update Time Entry',
@@ -106,7 +103,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // DELETE time entry
     server.registerTool(
         'tmetric_delete_time_entry',
         { title:       'Delete Time Entry',
@@ -125,7 +121,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // GET latest time entry
     server.registerTool(
         'tmetric_get_latest_time_entry',
         { title: 'Get Latest Time Entry',
@@ -144,7 +139,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // GET recent time entries
     server.registerTool(
         'tmetric_get_recent_time_entries',
         { title:       'Get Recent Time Entries',
@@ -162,7 +156,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // GET trackable projects (confirmed alternative for project list)
     server.registerTool(
         'tmetric_get_trackable_projects',
         { title: 'Get Trackable Projects',
@@ -182,7 +175,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // GET time entry tags
     server.registerTool(
         'tmetric_get_time_entry_tags',
         { title:       'Get Time Entry Tags',
@@ -200,7 +192,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // POST add break
     server.registerTool(
         'tmetric_add_break',
         { title: 'Add Break',
@@ -226,9 +217,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // --- Timer wrappers ---
-
-    // GET active timer (wrapper over latest)
     server.registerTool(
         'tmetric_get_active_timer',
         { title: 'Get Active Timer',
@@ -251,7 +239,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // POST start timer (wrapper over create with null times)
     server.registerTool(
         'tmetric_start_timer',
         { title: 'Start Timer',
@@ -307,7 +294,6 @@ export function registerTimeEntryTools(server: McpServer): void {
         }
     );
 
-    // PUT stop timer (wrapper over update, sets endTime)
     server.registerTool(
         'tmetric_stop_timer',
         { title: 'Stop Timer',

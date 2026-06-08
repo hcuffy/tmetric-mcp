@@ -8,7 +8,6 @@ function result(data: unknown) {
 }
 
 export function registerTaskTools(server: McpServer): void {
-    // GET list tasks
     server.registerTool(
         'tmetric_list_tasks',
         { title:       'List Tasks',
@@ -26,7 +25,6 @@ export function registerTaskTools(server: McpServer): void {
         }
     );
 
-    // GET single task
     server.registerTool(
         'tmetric_get_task',
         { title:       'Get Task',
@@ -45,7 +43,6 @@ export function registerTaskTools(server: McpServer): void {
         }
     );
 
-    // POST create task
     server.registerTool(
         'tmetric_create_task',
         { title:       'Create Task',
@@ -74,7 +71,6 @@ export function registerTaskTools(server: McpServer): void {
         }
     );
 
-    // PUT update task (full replace)
     server.registerTool(
         'tmetric_update_task',
         { title:       'Update Task',
@@ -112,7 +108,6 @@ export function registerTaskTools(server: McpServer): void {
         }
     );
 
-    // PATCH partial update task
     server.registerTool(
         'tmetric_patch_task',
         { title:       'Patch Task',
@@ -153,7 +148,6 @@ export function registerTaskTools(server: McpServer): void {
         }
     );
 
-    // DELETE task
     server.registerTool(
         'tmetric_delete_task',
         { title:       'Delete Task',

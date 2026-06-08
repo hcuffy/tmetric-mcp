@@ -8,7 +8,6 @@ function result(data: unknown) {
 }
 
 export function registerUserTools(server: McpServer): void {
-    // GET current user — confirmed ✅
     server.registerTool(
         'tmetric_get_current_user',
         { title: 'Get Current User',
@@ -24,7 +23,6 @@ export function registerUserTools(server: McpServer): void {
         }
     );
 
-    // GET managed teams — confirmed fallback for unconfirmed GET /members ✅
     server.registerTool(
         'tmetric_list_managed_teams',
         { title: 'List Managed Teams',

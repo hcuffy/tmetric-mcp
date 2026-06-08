@@ -5,18 +5,16 @@ import {
     registerAccountTools, registerTimeEntryTools, registerProjectTools, registerTaskTools, registerUserTools, registerReportTools
 } from './tools/index.js';
 
-// Fail loud at startup if token is missing — before connecting transport.
 validateTokenAtStartup();
 
 const server = new McpServer({ name:    'tmetric',
     version: '1.0.0' });
 
-// Register all confirmed tools
 registerAccountTools(server);
 registerUserTools(server);
 registerTimeEntryTools(server);
 registerTaskTools(server);
-registerProjectTools(server); // UNCONFIRMED tools are gated inside; no-op for now
+registerProjectTools(server);
 registerReportTools(server);
 
 async function main(): Promise<void> {

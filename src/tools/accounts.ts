@@ -2,7 +2,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { tmetricRequest } from '../client.js';
 
 function result(data: unknown) {
-    return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] };
+    return { content: [
+        { type: 'text' as const,
+            text: JSON.stringify(data) }] };
 }
 
 export function registerAccountTools(server: McpServer): void {

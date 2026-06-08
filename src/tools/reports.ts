@@ -22,7 +22,6 @@ function appendArrayParam(
 }
 
 export function registerReportTools(server: McpServer): void {
-    // GET projects summary report — confirmed ✅
     server.registerTool(
         'tmetric_get_projects_report',
         { title: 'Get Projects Report',
@@ -91,7 +90,6 @@ export function registerReportTools(server: McpServer): void {
         }
     );
 
-    // GET profitability report — confirmed ✅ (params unverified 🔎)
     server.registerTool(
         'tmetric_get_profitability_report',
         { title: 'Get Profitability Report',

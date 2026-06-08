@@ -59,16 +59,14 @@ TMETRIC_API_TOKEN=your_token npm run dev
 
 | Tool | Description |
 |------|-------------|
-| `tmetric_get_account_id` | Resolve the current user's active account ID via `GET /user`. Use this to discover your `accountId`. |
-
-> `GET /accounts` is unconfirmed. See Step 0 in the build plan before implementing `tmetric_get_accounts`.
+| `tmetric_get_accounts` | List all TMetric workspaces available to the current user. Returns account IDs needed for other tools. |
 
 ### Users (`users.ts`)
 
 | Tool | Description |
 |------|-------------|
 | `tmetric_get_current_user` | Get authenticated user's profile including account memberships and `activeAccountId`. |
-| `tmetric_list_managed_teams` | List teams managed by the current user (fallback for unconfirmed `GET /members`). |
+| `tmetric_list_managed_teams` | List teams managed by the current user in the given workspace. |
 
 ### Time Entries (`timeEntries.ts`)
 
@@ -105,16 +103,16 @@ TMETRIC_API_TOKEN=your_token npm run dev
 
 ### Projects (`projects.ts`)
 
-> `GET /accounts/{accountId}/projects` and `GET /accounts/{accountId}/projects/{projectId}` are **unconfirmed**.
-> Use `tmetric_get_trackable_projects` to list projects for time entry.
-> Implement `tmetric_list_projects` / `tmetric_get_project` once confirmed in Swagger.
+| Tool | Description |
+|------|-------------|
+| `tmetric_list_projects` | List all projects visible to the current user in the workspace. |
 
 ### Reports (`reports.ts`)
 
 | Tool | Description |
 |------|-------------|
 | `tmetric_get_projects_report` | Projects summary report. Filters: `userId[]`, `teamId[]`, `clientId[]`, `projectId[]`, `includeDone`, `startDate`, `endDate`. Arrays serialized as repeated query params. |
-| `tmetric_get_profitability_report` | Profitability report. Exact params unverified — expand in Swagger before relying on filters. |
+| `tmetric_get_profitability_report` | Profitability report. Filters: `userId[]`, `teamId[]`, `clientId[]`, `projectId[]`, `startDate`, `endDate`. |
 
 ## Notes
 

@@ -11,16 +11,16 @@ An [MCP](https://modelcontextprotocol.io/) server for the [TMetric](https://tmet
 
 ```bash
 # 1. Install dependencies
-npm install
+pnpm install
 
 # 2. Build
-npm run build
+pnpm build
 ```
 
 ## API Token
 
 1. Log in to [app.tmetric.com](https://app.tmetric.com)
-2. Go to your **Profile** → **API Tokens** → **Get new API token**
+2. Click your name (bottom-left) → **My Profile** → **General Settings** → **Get new API token**
 3. Copy the token — you will set it as `TMETRIC_API_TOKEN`
 
 ## Claude Desktop configuration
@@ -47,7 +47,7 @@ Replace `/absolute/path/to/tmetric-mcp` with the actual path to this repo.
 
 ```bash
 # Run without building (uses tsx)
-TMETRIC_API_TOKEN=your_token npm run dev
+TMETRIC_API_TOKEN=your_token pnpm dev
 ```
 
 ## Tool reference

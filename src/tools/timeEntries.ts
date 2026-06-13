@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { tmetricRequest, resolveAccountId } from '../client.js';
 import type { TMetricTimeEntry } from '../types.js';
+import { result, safe } from './utils.js';
 
 const TimeEntryBodySchema = z.object({
     id:         z.number().int().optional(),
@@ -17,10 +18,6 @@ const TimeEntryBodySchema = z.object({
     isInvoiced: z.boolean().optional()
 });
 
-function result(data: unknown) {
-    return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] };
-}
-
 export function registerTimeEntryTools(server: McpServer): void {
     server.registerTool(
         'tmetric_get_time_entries',
@@ -32,25 +29,24 @@ export function registerTimeEntryTools(server: McpServer): void {
                 startDate: z.string().optional().describe('Start date YYYY-MM-DD (inclusive)'),
                 endDate:   z.string().optional().describe('End date YYYY-MM-DD (inclusive)') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId, userId, startDate, endDate }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const params = new URLSearchParams();
-            if (userId !== undefined) {
-                params.set('userId', String(userId));
-            }
-            if (startDate) {
-                params.set('startDate', startDate);
-            }
-            if (endDate) {
-                params.set('endDate', endDate);
-            }
-            const queryString = params.toString() ? `?${params}` : '';
-            const data = await tmetricRequest<TMetricTimeEntry[]>(
-                'GET',
-                `/accounts/${accountId}/timeentries${queryString}`
-            );
+        function({ accountId: explicitAccountId, userId, startDate, endDate }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const params = new URLSearchParams();
+                if (userId !== undefined) {
+                    params.set('userId', String(userId));
+                }
+                if (startDate) {
+                    params.set('startDate', startDate);
+                }
+                if (endDate) {
+                    params.set('endDate', endDate);
+                }
+                const queryString = params.toString() ? `?${params}` : '';
+                const data = await tmetricRequest<TMetricTimeEntry[]>('GET', `/accounts/${accountId}/timeentries${queryString}`);
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -65,20 +61,22 @@ export function registerTimeEntryTools(server: McpServer): void {
                 userId:    z.number().int().optional().describe('User ID (0 = current user)'),
                 entry:     TimeEntryBodySchema.describe('Time entry data') },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({ accountId: explicitAccountId, userId, entry }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const params = new URLSearchParams();
-            if (userId !== undefined) {
-                params.set('userId', String(userId));
-            }
-            const queryString = params.toString() ? `?${params}` : '';
-            const data = await tmetricRequest<TMetricTimeEntry>(
-                'POST',
-                `/accounts/${accountId}/timeentries${queryString}`,
-                entry
-            );
+        function({ accountId: explicitAccountId, userId, entry }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const params = new URLSearchParams();
+                if (userId !== undefined) {
+                    params.set('userId', String(userId));
+                }
+                const queryString = params.toString() ? `?${params}` : '';
+                const data = await tmetricRequest<TMetricTimeEntry>(
+                    'POST',
+                    `/accounts/${accountId}/timeentries${queryString}`,
+                    entry
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -91,15 +89,17 @@ export function registerTimeEntryTools(server: McpServer): void {
                 timeEntryId: z.number().int().describe('ID of the time entry to update'),
                 entry:       TimeEntryBodySchema.describe('Updated time entry data') },
             annotations: { idempotentHint: false } },
-        async({ accountId: explicitAccountId, timeEntryId, entry }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const data = await tmetricRequest<TMetricTimeEntry>(
-                'PUT',
-                `/accounts/${accountId}/timeentries/${timeEntryId}`,
-                entry
-            );
+        function({ accountId: explicitAccountId, timeEntryId, entry }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const data = await tmetricRequest<TMetricTimeEntry>(
+                    'PUT',
+                    `/accounts/${accountId}/timeentries/${timeEntryId}`,
+                    entry
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -110,14 +110,16 @@ export function registerTimeEntryTools(server: McpServer): void {
             inputSchema: { accountId:   z.number().int().optional().describe('TMetric account ID'),
                 timeEntryId: z.number().int().describe('ID of the time entry to delete') },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({ accountId: explicitAccountId, timeEntryId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            await tmetricRequest<void>(
-                'DELETE',
-                `/accounts/${accountId}/timeentries/${timeEntryId}`
-            );
+        function({ accountId: explicitAccountId, timeEntryId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                await tmetricRequest<void>(
+                    'DELETE',
+                    `/accounts/${accountId}/timeentries/${timeEntryId}`
+                );
 
-            return result({ success: true, timeEntryId });
+                return result({ success: true, timeEntryId });
+            });
         }
     );
 
@@ -128,14 +130,16 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Get the most recent time entry. An entry with endTime=null is the currently running timer.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const data = await tmetricRequest<TMetricTimeEntry>(
-                'GET',
-                `/accounts/${accountId}/timeentries/latest`
-            );
+        function({ accountId: explicitAccountId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const data = await tmetricRequest<TMetricTimeEntry>(
+                    'GET',
+                    `/accounts/${accountId}/timeentries/latest`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -145,14 +149,16 @@ export function registerTimeEntryTools(server: McpServer): void {
             description: 'Get a list of recent time entries.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const data = await tmetricRequest<TMetricTimeEntry[]>(
-                'GET',
-                `/accounts/${accountId}/timeentries/recent`
-            );
+        function({ accountId: explicitAccountId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const data = await tmetricRequest<TMetricTimeEntry[]>(
+                    'GET',
+                    `/accounts/${accountId}/timeentries/recent`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -164,14 +170,16 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Use this to discover project IDs when creating time entries.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const data = await tmetricRequest<unknown[]>(
-                'GET',
-                `/accounts/${accountId}/timeentries/projects`
-            );
+        function({ accountId: explicitAccountId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const data = await tmetricRequest<unknown[]>(
+                    'GET',
+                    `/accounts/${accountId}/timeentries/projects`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -181,14 +189,16 @@ export function registerTimeEntryTools(server: McpServer): void {
             description: 'Get all tags available for time entries in this account.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const data = await tmetricRequest<unknown[]>(
-                'GET',
-                `/accounts/${accountId}/timeentries/tags`
-            );
+        function({ accountId: explicitAccountId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const data = await tmetricRequest<unknown[]>(
+                    'GET',
+                    `/accounts/${accountId}/timeentries/tags`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -198,22 +208,20 @@ export function registerTimeEntryTools(server: McpServer): void {
             description:
         'Add a break to the current timeline. Sending endTime=null is also a way to stop a running timer.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID'),
-                endTime:   z
-                    .string()
-                    .nullable()
-                    .optional()
-                    .describe('End time of break YYYY-MM-DDTHH:mm:ss, or null to stop timer') },
+                endTime:   z.string().nullable().optional().describe('End time of break YYYY-MM-DDTHH:mm:ss, or null to stop timer') },
             annotations: { idempotentHint: false } },
-        async({ accountId: explicitAccountId, endTime }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const body = endTime !== undefined ? { endTime } : undefined;
-            const data = await tmetricRequest<unknown>(
-                'POST',
-                `/accounts/${accountId}/timeentries/break`,
-                body
-            );
+        function({ accountId: explicitAccountId, endTime }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const body = endTime !== undefined ? { endTime } : undefined;
+                const data = await tmetricRequest<unknown>(
+                    'POST',
+                    `/accounts/${accountId}/timeentries/break`,
+                    body
+                );
 
-            return result(data ?? { success: true });
+                return result(data ?? { success: true });
+            });
         }
     );
 
@@ -225,17 +233,19 @@ export function registerTimeEntryTools(server: McpServer): void {
         'if its endTime is null, the timer is running. Returns null if no timer is active.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const entry = await tmetricRequest<TMetricTimeEntry | null>(
-                'GET',
-                `/accounts/${accountId}/timeentries/latest`
-            );
-            if (!entry || entry.endTime !== null) {
-                return result({ running: false, timer: null });
-            }
+        function({ accountId: explicitAccountId }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const entry = await tmetricRequest<TMetricTimeEntry | null>(
+                    'GET',
+                    `/accounts/${accountId}/timeentries/latest`
+                );
+                if (!entry || entry.endTime !== null) {
+                    return result({ running: false, timer: null });
+                }
 
-            return result({ running: true, timer: entry });
+                return result({ running: true, timer: entry });
+            });
         }
     );
 
@@ -246,51 +256,46 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Start a new timer (running time entry). Uses startTime=null to start now with endTime=null (open). ' +
         'Optionally attach a project, task, note, or tags. WARNING: overwrites overlapping entries.',
             inputSchema: {
-                accountId: z.number().int().optional().describe('TMetric account ID'),
-                projectId: z.number().int().optional().describe('Project ID to attach'),
-                taskId:    z.number().int().optional().describe('Task ID to attach'),
-                note:      z.string().optional().describe('Note/description for the timer'),
-                tags:      z
-                    .array(z.number().int())
-                    .optional()
-                    .describe('Tag IDs to attach'),
+                accountId:  z.number().int().optional().describe('TMetric account ID'),
+                projectId:  z.number().int().optional().describe('Project ID to attach'),
+                taskId:     z.number().int().optional().describe('Task ID to attach'),
+                note:       z.string().optional().describe('Note/description for the timer'),
+                tags:       z.array(z.number().int()).optional().describe('Tag IDs to attach'),
                 isBillable: z.boolean().optional().describe('Mark as billable'),
-                startTime:  z
-                    .string()
-                    .optional()
-                    .describe(
-                        'Optional custom start time YYYY-MM-DDTHH:mm:ss. Omit to start now.'
-                    )
+                startTime:  z.string().optional().describe('Optional custom start time YYYY-MM-DDTHH:mm:ss. Omit to start now.')
             },
             annotations: { destructiveHint: true, idempotentHint: false } },
-        async({
+        function({
             accountId: explicitAccountId, projectId, taskId, note, tags, isBillable, startTime
-        }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const body: Record<string, unknown> = { startTime: startTime ?? null,
-                endTime:   null };
-            if (projectId !== undefined) {
-                body.project = { id: projectId };
-            }
-            if (taskId !== undefined) {
-                body.task = { id: taskId };
-            }
-            if (note !== undefined) {
-                body.note = note;
-            }
-            if (tags !== undefined) {
-                body.tags = tags.map(id => ({ id }));
-            }
-            if (isBillable !== undefined) {
-                body.isBillable = isBillable;
-            }
-            const data = await tmetricRequest<TMetricTimeEntry>(
-                'POST',
-                `/accounts/${accountId}/timeentries`,
-                body
-            );
+        }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const body: Record<string, unknown> = { startTime: startTime ?? null, endTime: null };
+                if (projectId !== undefined) {
+                    body.project = { id: projectId };
+                }
+                if (taskId !== undefined) {
+                    body.task = { id: taskId };
+                }
+                if (note !== undefined) {
+                    body.note = note;
+                }
+                if (tags !== undefined) {
+                    body.tags = tags.map(function(id: number) {
+                        return { id };
+                    });
+                }
+                if (isBillable !== undefined) {
+                    body.isBillable = isBillable;
+                }
+                const data = await tmetricRequest<TMetricTimeEntry>(
+                    'POST',
+                    `/accounts/${accountId}/timeentries`,
+                    body
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -301,45 +306,35 @@ export function registerTimeEntryTools(server: McpServer): void {
         'Stop the currently running timer by setting its endTime. ' +
         'Resolves the running entry from tmetric_get_latest_time_entry if no timeEntryId is given.',
             inputSchema: { accountId:   z.number().int().optional().describe('TMetric account ID'),
-                timeEntryId: z
-                    .number()
-                    .int()
-                    .optional()
-                    .describe(
-                        'ID of the running time entry to stop. Resolved automatically from latest if omitted.'
-                    ),
-                endTime: z
-                    .string()
-                    .optional()
-                    .describe(
-                        'Stop time YYYY-MM-DDTHH:mm:ss. Defaults to current time if omitted.'
-                    ) },
+                timeEntryId: z.number().int().optional()
+                    .describe('ID of the running time entry to stop. Resolved automatically from latest if omitted.'),
+                endTime: z.string().optional().describe('Stop time YYYY-MM-DDTHH:mm:ss. Defaults to current time if omitted.') },
             annotations: { idempotentHint: false } },
-        async({ accountId: explicitAccountId, timeEntryId, endTime }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            let entryId = timeEntryId;
+        function({ accountId: explicitAccountId, timeEntryId, endTime }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                let entryId = timeEntryId;
 
-            if (entryId === undefined) {
-                const latest = await tmetricRequest<TMetricTimeEntry | null>(
-                    'GET',
-                    `/accounts/${accountId}/timeentries/latest`
-                );
-                if (!latest || latest.endTime !== null) {
-                    return result({ success: false, message: 'No running timer found.' });
+                if (entryId === undefined) {
+                    const latest = await tmetricRequest<TMetricTimeEntry | null>(
+                        'GET',
+                        `/accounts/${accountId}/timeentries/latest`
+                    );
+                    if (!latest || latest.endTime !== null) {
+                        return result({ success: false, message: 'No running timer found.' });
+                    }
+                    entryId = latest.id;
                 }
-                entryId = latest.id;
-            }
 
-            const stopTime =
-        endTime ?? new Date().toISOString().slice(0, 19).replace('T', 'T');
+                const stopTime = endTime ?? new Date().toISOString().slice(0, 19);
+                const data = await tmetricRequest<TMetricTimeEntry>(
+                    'PUT',
+                    `/accounts/${accountId}/timeentries/${entryId}`,
+                    { endTime: stopTime }
+                );
 
-            const data = await tmetricRequest<TMetricTimeEntry>(
-                'PUT',
-                `/accounts/${accountId}/timeentries/${entryId}`,
-                { endTime: stopTime }
-            );
-
-            return result(data);
+                return result(data);
+            });
         }
     );
 }

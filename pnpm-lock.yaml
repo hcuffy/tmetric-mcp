@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: 1.29.0
-        version: 1.29.0(zod@3.25.0)
+        version: 1.29.0(zod@3.24.2)
       zod:
-        specifier: 3.25.0
-        version: 3.25.0
+        specifier: 3.24.2
+        version: 3.24.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: 3.3.5
@@ -981,8 +981,8 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@3.25.0:
-    resolution: {integrity: sha512-ficnZKUW0mlNivqeJkosTEkGbJ6NKCtSaOHGx5aXbtfeWMdRyzXLbAIn19my4C/KB7WPY/p9vlGPt+qpOp6c4Q==}
+  zod@3.24.2:
+    resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
 snapshots:
 
@@ -1120,7 +1120,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@modelcontextprotocol/sdk@1.29.0(zod@3.25.0)':
+  '@modelcontextprotocol/sdk@1.29.0(zod@3.24.2)':
     dependencies:
       '@hono/node-server': 1.19.14(hono@4.12.23)
       ajv: 8.20.0
@@ -1137,8 +1137,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 3.25.0
-      zod-to-json-schema: 3.25.2(zod@3.25.0)
+      zod: 3.24.2
+      zod-to-json-schema: 3.25.2(zod@3.24.2)
     transitivePeerDependencies:
       - supports-color
 
@@ -1905,8 +1905,8 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod-to-json-schema@3.25.2(zod@3.25.0):
+  zod-to-json-schema@3.25.2(zod@3.24.2):
     dependencies:
-      zod: 3.25.0
+      zod: 3.24.2
 
-  zod@3.25.0: {}
+  zod@3.24.2: {}

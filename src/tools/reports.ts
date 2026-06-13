@@ -2,17 +2,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { tmetricRequest, resolveAccountId } from '../client.js';
 import type { TMetricProjectsReport, TMetricProfitabilityReport } from '../types.js';
+import { result, safe } from './utils.js';
 
-function result(data: unknown) {
-    return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] };
-}
-
-/** Serialize an array param as repeated keys: ?userId=0&userId=5 */
-function appendArrayParam(
-    params: URLSearchParams,
-    key: string,
-    values: number[] | undefined
-): void {
+function appendArrayParam(params: URLSearchParams, key: string, values: number[] | undefined): void {
     if (!values || values.length === 0) {
         return;
     }
@@ -31,62 +23,43 @@ export function registerReportTools(server: McpServer): void {
         'Financial info included only if caller has rights to it. ' +
         'Array params (userId, teamId, etc.) are serialized as repeated query keys.',
             inputSchema: {
-                accountId: z.number().int().optional().describe('TMetric account ID'),
-                userId:    z
-                    .array(z.number().int())
-                    .optional()
-                    .describe('Filter by user IDs (0 = current user)'),
-                teamId: z
-                    .array(z.number().int())
-                    .optional()
-                    .describe('Filter by team IDs'),
-                clientId: z
-                    .array(z.number().int())
-                    .optional()
-                    .describe('Filter by client IDs'),
-                projectId: z
-                    .array(z.number().int())
-                    .optional()
-                    .describe('Filter by project IDs'),
-                includeDone: z
-                    .boolean()
-                    .optional()
-                    .describe('Include completed projects'),
-                startDate: z
-                    .string()
-                    .optional()
-                    .describe('Start date YYYY-MM-DD (inclusive)'),
-                endDate: z
-                    .string()
-                    .optional()
-                    .describe('End date YYYY-MM-DD (inclusive)')
+                accountId:   z.number().int().optional().describe('TMetric account ID'),
+                userId:      z.array(z.number().int()).optional().describe('Filter by user IDs (0 = current user)'),
+                teamId:      z.array(z.number().int()).optional().describe('Filter by team IDs'),
+                clientId:    z.array(z.number().int()).optional().describe('Filter by client IDs'),
+                projectId:   z.array(z.number().int()).optional().describe('Filter by project IDs'),
+                includeDone: z.boolean().optional().describe('Include completed projects'),
+                startDate:   z.string().optional().describe('Start date YYYY-MM-DD (inclusive)'),
+                endDate:     z.string().optional().describe('End date YYYY-MM-DD (inclusive)')
             },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({
+        function({
             accountId: explicitAccountId, userId, teamId, clientId, projectId, includeDone, startDate, endDate
-        }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const params = new URLSearchParams();
-            appendArrayParam(params, 'userId', userId);
-            appendArrayParam(params, 'teamId', teamId);
-            appendArrayParam(params, 'clientId', clientId);
-            appendArrayParam(params, 'projectId', projectId);
-            if (includeDone !== undefined) {
-                params.set('includeDone', String(includeDone));
-            }
-            if (startDate) {
-                params.set('startDate', startDate);
-            }
-            if (endDate) {
-                params.set('endDate', endDate);
-            }
-            const queryString = params.toString() ? `?${params}` : '';
-            const data = await tmetricRequest<TMetricProjectsReport[]>(
-                'GET',
-                `/accounts/${accountId}/reports/projects${queryString}`
-            );
+        }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const params = new URLSearchParams();
+                appendArrayParam(params, 'userId', userId);
+                appendArrayParam(params, 'teamId', teamId);
+                appendArrayParam(params, 'clientId', clientId);
+                appendArrayParam(params, 'projectId', projectId);
+                if (includeDone !== undefined) {
+                    params.set('includeDone', String(includeDone));
+                }
+                if (startDate) {
+                    params.set('startDate', startDate);
+                }
+                if (endDate) {
+                    params.set('endDate', endDate);
+                }
+                const queryString = params.toString() ? `?${params}` : '';
+                const data = await tmetricRequest<TMetricProjectsReport[]>(
+                    'GET',
+                    `/accounts/${accountId}/reports/projects${queryString}`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 
@@ -98,31 +71,27 @@ export function registerReportTools(server: McpServer): void {
         'Note: exact query parameters for this endpoint are unverified — ' +
         'pass startDate and endDate as a best guess. Expand in Swagger to confirm.',
             inputSchema: { accountId: z.number().int().optional().describe('TMetric account ID'),
-                startDate: z
-                    .string()
-                    .optional()
-                    .describe('Start date YYYY-MM-DD (inclusive)'),
-                endDate: z
-                    .string()
-                    .optional()
-                    .describe('End date YYYY-MM-DD (inclusive)') },
+                startDate: z.string().optional().describe('Start date YYYY-MM-DD (inclusive)'),
+                endDate:   z.string().optional().describe('End date YYYY-MM-DD (inclusive)') },
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async({ accountId: explicitAccountId, startDate, endDate }) => {
-            const accountId = await resolveAccountId(explicitAccountId);
-            const params = new URLSearchParams();
-            if (startDate) {
-                params.set('startDate', startDate);
-            }
-            if (endDate) {
-                params.set('endDate', endDate);
-            }
-            const queryString = params.toString() ? `?${params}` : '';
-            const data = await tmetricRequest<TMetricProfitabilityReport>(
-                'GET',
-                `/accounts/${accountId}/reports/profitability${queryString}`
-            );
+        function({ accountId: explicitAccountId, startDate, endDate }) {
+            return safe(async function() {
+                const accountId = await resolveAccountId(explicitAccountId);
+                const params = new URLSearchParams();
+                if (startDate) {
+                    params.set('startDate', startDate);
+                }
+                if (endDate) {
+                    params.set('endDate', endDate);
+                }
+                const queryString = params.toString() ? `?${params}` : '';
+                const data = await tmetricRequest<TMetricProfitabilityReport>(
+                    'GET',
+                    `/accounts/${accountId}/reports/profitability${queryString}`
+                );
 
-            return result(data);
+                return result(data);
+            });
         }
     );
 }

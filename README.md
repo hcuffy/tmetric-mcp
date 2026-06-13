@@ -4,10 +4,24 @@ An [MCP](https://modelcontextprotocol.io/) server for the [TMetric](https://tmet
 
 ## Requirements
 
-- Node.js 20 or later
+- Node.js 22 or later
 - A TMetric account with an API token
 
-## Setup
+## Installation
+
+### Via npx
+
+```bash
+npx tmetric-mcp
+```
+
+### Global install
+
+```bash
+pnpm add -g tmetric-mcp
+```
+
+### From source
 
 ```bash
 # 1. Install dependencies
@@ -27,6 +41,24 @@ pnpm build
 
 Add this block to your `claude_desktop_config.json` (usually at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
+**Using npx (recommended):**
+
+```json
+{
+  "mcpServers": {
+    "tmetric": {
+      "command": "npx",
+      "args": ["tmetric-mcp"],
+      "env": {
+        "TMETRIC_API_TOKEN": "YOUR_TOKEN_HERE"
+      }
+    }
+  }
+}
+```
+
+**From source:**
+
 ```json
 {
   "mcpServers": {
@@ -40,8 +72,6 @@ Add this block to your `claude_desktop_config.json` (usually at `~/Library/Appli
   }
 }
 ```
-
-Replace `/absolute/path/to/tmetric-mcp` with the actual path to this repo.
 
 ## Development
 

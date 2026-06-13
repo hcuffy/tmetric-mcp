@@ -1,12 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { tmetricRequest } from '../client.js';
 import type { TMetricAccount } from '../types.js';
-
-function result(data: unknown) {
-    return { content: [
-        { type: 'text' as const,
-            text: JSON.stringify(data) }] };
-}
+import { result, safe } from './utils.js';
 
 export function registerAccountTools(server: McpServer): void {
     server.registerTool(
@@ -17,10 +12,12 @@ export function registerAccountTools(server: McpServer): void {
         'Use the returned account IDs when calling other tools that require an accountId.',
             inputSchema: {},
             annotations: { readOnlyHint: true, idempotentHint: true } },
-        async() => {
-            const accounts = await tmetricRequest<TMetricAccount[]>('GET', '/userprofile/accounts');
+        function() {
+            return safe(async function() {
+                const accounts = await tmetricRequest<TMetricAccount[]>('GET', '/userprofile/accounts');
 
-            return result(accounts);
+                return result(accounts);
+            });
         }
     );
 }

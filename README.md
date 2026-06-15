@@ -37,11 +37,13 @@ pnpm build
 2. Click your name (bottom-left) → **My Profile** → **General Settings** → **Get new API token**
 3. Copy the token — you will set it as `TMETRIC_API_TOKEN`
 
-## Claude Desktop configuration
+## MCP client configuration
+
+### Claude Desktop
 
 Add this block to your `claude_desktop_config.json` (usually at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
-**Using npx (recommended):**
+**Using npx:**
 
 ```json
 {
@@ -57,7 +59,43 @@ Add this block to your `claude_desktop_config.json` (usually at `~/Library/Appli
 }
 ```
 
-**From source:**
+**From source (recommended):**
+
+```json
+{
+  "mcpServers": {
+    "tmetric": {
+      "command": "node",
+      "args": ["/absolute/path/to/tmetric-mcp/dist/index.js"],
+      "env": {
+        "TMETRIC_API_TOKEN": "YOUR_TOKEN_HERE"
+      }
+    }
+  }
+}
+```
+
+### Cursor
+
+Add this block to `~/.cursor/mcp.json`:
+
+**Using npx:**
+
+```json
+{
+  "mcpServers": {
+    "tmetric": {
+      "command": "npx",
+      "args": ["tmetric-mcp"],
+      "env": {
+        "TMETRIC_API_TOKEN": "YOUR_TOKEN_HERE"
+      }
+    }
+  }
+}
+```
+
+**From source (recommended):**
 
 ```json
 {
@@ -142,7 +180,7 @@ TMETRIC_API_TOKEN=your_token pnpm dev
 | Tool | Description |
 |------|-------------|
 | `tmetric_get_projects_report` | Projects summary report. Filters: `userId[]`, `teamId[]`, `clientId[]`, `projectId[]`, `includeDone`, `startDate`, `endDate`. Arrays serialized as repeated query params. |
-| `tmetric_get_profitability_report` | Profitability report. Filters: `userId[]`, `teamId[]`, `clientId[]`, `projectId[]`, `startDate`, `endDate`. |
+| `tmetric_get_profitability_report` | Profitability report. Filters: `startDate`, `endDate`. |
 
 ## Notes
 
